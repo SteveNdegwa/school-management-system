@@ -1,4 +1,4 @@
-from users.models import User, Student, Teacher, Role, RolePermission, Permission
+from users.models import User, Role, RolePermission, Permission
 from utils.ServiceBase import ServiceBase
 
 
@@ -13,9 +13,3 @@ class RolePermissionService(ServiceBase):
 
 class UserService(ServiceBase):
     manager = User.objects
-
-class StudentService(ServiceBase):
-    manager = Student.objects
-
-class TeacherService(ServiceBase):
-    manager = Teacher.objects

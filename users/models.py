@@ -4,7 +4,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
 
 from base.models import GenericBaseModel, State, BaseModel
-from users.managers import StudentManager, TeacherManager
 
 lgr = logging.getLogger(__name__)
 lgr.propagate = False
@@ -24,7 +23,7 @@ class Role(GenericBaseModel):
             return cls.objects.get(name="Admin")
         except Exception as e:
             lgr.exception("Role model - admin exception: %s" % e)
-        return None
+            return None
 
     @classmethod
     def student(cls):
@@ -32,7 +31,7 @@ class Role(GenericBaseModel):
             return cls.objects.get(name="Student")
         except Exception as e:
             lgr.exception("Role model - admin exception: %s" % e)
-        return None
+            return None
 
     @classmethod
     def teacher(cls):
@@ -40,7 +39,7 @@ class Role(GenericBaseModel):
             return cls.objects.get(name="Teacher")
         except Exception as e:
             lgr.exception("Role model - admin exception: %s" % e)
-        return None
+            return None
 
 class Permission(GenericBaseModel):
     state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
@@ -65,11 +64,11 @@ class RolePermission(BaseModel):
 
 class User(BaseModel, AbstractUser):
     GENDER = [
-        ('Male', 'Male'),
-        ('Female', 'Female'),
-        ('Other', 'Other'),
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
     ]
-    DEFAULT_GENDER = "Other"
+    DEFAULT_GENDER = "other"
     DEFAULT_ROLE = Role.admin
 
     other_name = models.CharField(max_length=100, blank=True, null=True)
@@ -86,20 +85,3 @@ class User(BaseModel, AbstractUser):
     class Meta:
         ordering = ('-date_created',)
 
-class Student(User):
-    DEFAULT_ROLE = Role.student
-    objects = StudentManager
-
-    class Meta:
-        proxy = True
-
-
-class Teacher(User):
-    DEFAULT_ROLE = Role.teacher
-    objects = TeacherManager
-
-    class Meta:
-        proxy = True
-
-class Profile(BaseModel):
-    pass
