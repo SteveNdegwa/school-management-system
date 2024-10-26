@@ -1,11 +1,13 @@
-FROM python:3.9-slim-bullseye
+FROM python:3.11-bullseye
 
-COPY . /app/
+ENV PYTHONBUFFERED=1
 
-WORKDIR /app
+WORKDIR /usr/src/app
+
+COPY ./requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 8000
+COPY . .
 
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:8000"]
+EXPOSE 8000

@@ -9,7 +9,7 @@ from django.conf import settings
 from base.backend.services import TransactionService, TransactionTypeService, NotificationTypeService, \
     NotificationService
 from base.models import State
-from utils.common import json_super_serializer
+from utils.common import json_super_serializer, get_client_ip
 from utils.get_request_data import get_request_data
 
 lgr = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ class TransactionLogBase(object):
             if request:
                 # kwargs.setdefault("user", getattr(request, "user", None))
                 data = get_request_data(request)
-                kwargs.setdefault("source_ip", data.get("source_ip", ""))
+                kwargs.setdefault("source_ip", get_client_ip(request))
                 kwargs["request"] = data
             return TransactionService().create(transaction_type=transaction_type, **kwargs)
         except Exception as e:

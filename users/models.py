@@ -80,7 +80,59 @@ class User(BaseModel, AbstractUser):
     objects = UserManager()
 
     def __str__(self):
-        return "%s %s - %s" % (self.first_name, self.last_name, self.role.name)
+        return "%s %s" % (self.first_name, self.last_name)
+
+    class Meta:
+        ordering = ('-date_created',)
+
+class Guardian(BaseModel):
+    GENDER = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
+    ]
+    DEFAULT_GENDER = "other"
+
+    first_name = models.CharField(max_length=20, null=True, blank=True)
+    last_name = models.CharField(max_length=20, null=True, blank=True)
+    other_name = models.CharField(max_length=20, null=True, blank=True)
+    gender = models.CharField(max_length=100, default=DEFAULT_GENDER, choices=GENDER)
+    id_no = models.CharField(max_length=20, null=True, blank=True)
+    email = models.EmailField(max_length=100, null=True, blank=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    other_phone_number = models.CharField(max_length=20, null=True, blank=True)
+    state = models.ForeignKey(State, default=State.active, null=True, blank=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "%s %s" % (self.first_name, self.last_name)
+
+    class Meta:
+        ordering = ('-date_created',)
+
+class StudentProfile(BaseModel):
+    student = models.ForeignKey(User, related_name='student', on_delete=models.CASCADE)
+    reg_no = models.CharField(max_length=20, editable=False, unique=True)
+    guardian = models.ForeignKey(Guardian, null=True, blank=True, related_name='guardian', on_delete=models.CASCADE)
+    other_guardian = models.ForeignKey(
+        Guardian, null=True, blank=True, related_name='other_guardian', on_delete=models.CASCADE)
+    state = models.ForeignKey(State, default=State.active, null=True, blank=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.reg_no
+
+    class Meta:
+        ordering = ('-date_created',)
+
+class TeacherProfile(BaseModel):
+    teacher = models.ForeignKey(User, related_name='teacher', on_delete=models.CASCADE)
+    reg_no = models.CharField(max_length=20, editable=False, unique=True)
+    id_no = models.CharField(max_length=20, null=True, blank=True, unique=True)
+    tsc_no = models.CharField(max_length=20, null=True, blank=True, unique=True)
+    other_phone_number = models.CharField(max_length=20, null=True, blank=True)
+    state = models.ForeignKey(State, default=State.active, null=True, blank=True, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.reg_no
 
     class Meta:
         ordering = ('-date_created',)
