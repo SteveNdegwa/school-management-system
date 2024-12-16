@@ -46,7 +46,7 @@ class TransactionLogBase(object):
         @rtype: Transaction | None
         """
         try:
-            transaction_type = TransactionTypeService().get(name=transaction_type)
+            transaction_type, created = TransactionTypeService().get_or_create(name=transaction_type)
             if not transaction_type:
                 return None
             kwargs.setdefault("state", State.active())
@@ -72,7 +72,7 @@ class TransactionLogBase(object):
         """
         try:
             kwargs.setdefault("state", State.completed())
-            notifications = kwargs.setdefault("notification_details", [])
+            notifications = kwargs.pop("notification_details", [])
             # Thread(target=self.send_notification, args=(notifications, transaction)).start()
             return TransactionService().update(pk=transaction.id, **kwargs)
         except Exception as e:
@@ -90,8 +90,8 @@ class TransactionLogBase(object):
         """
         try:
             kwargs.setdefault("state", State.failed())
-            notifications = kwargs.get('notification_details', [])
-            Thread(target=self.send_notification, args=(notifications, transaction)).start()
+            notifications = kwargs.pop('notification_details', [])
+            # Thread(target=self.send_notification, args=(notifications, transaction)).start()
             return TransactionService().update(pk=transaction.id, **kwargs)
         except Exception as e:
             lgr.exception('TransactionLogBase mark_transaction_failed Exception: %s', e)

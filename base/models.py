@@ -32,7 +32,8 @@ class State(GenericBaseModel):
     @classmethod
     def active(cls):
         try:
-            return cls.objects.get(name="Active")
+            state, created = cls.objects.get_or_create(name="Active")
+            return state
         except Exception as e:
             lgr.exception("State model - active exception: %s" % e)
             return None
@@ -40,7 +41,8 @@ class State(GenericBaseModel):
     @classmethod
     def inactive(cls):
         try:
-            return cls.objects.get(name="Inactive")
+            state, created = cls.objects.get_or_create(name="Inactive")
+            return state
         except Exception as e:
             lgr.exception("State model - inactive exception: %s" % e)
             return None
@@ -48,7 +50,8 @@ class State(GenericBaseModel):
     @classmethod
     def deleted(cls):
         try:
-            return cls.objects.get(name="Deleted")
+            state, created = cls.objects.get_or_create(name="Deleted")
+            return state
         except Exception as e:
             lgr.exception("State model - deleted exception: %s" % e)
             return None
@@ -56,7 +59,8 @@ class State(GenericBaseModel):
     @classmethod
     def expired(cls):
         try:
-            return cls.objects.get(name="Expired")
+            state, created = cls.objects.get_or_create(name="Expired")
+            return state
         except Exception as e:
             lgr.exception("State model - expired exception: %s" % e)
             return None
@@ -64,7 +68,8 @@ class State(GenericBaseModel):
     @classmethod
     def activation_pending(cls):
         try:
-            return cls.objects.get(name="Activation Pending")
+            state, created = cls.objects.get_or_create(name="Activation Pending")
+            return state
         except Exception as e:
             lgr.exception("State model - activation_pending exception: %s" % e)
             return None
@@ -72,7 +77,8 @@ class State(GenericBaseModel):
     @classmethod
     def completed(cls):
         try:
-            return cls.objects.get(name="Completed")
+            state, created = cls.objects.get_or_create(name="Completed")
+            return state
         except Exception as e:
             lgr.exception("State model - completed exception: %s" % e)
             return None
@@ -80,7 +86,8 @@ class State(GenericBaseModel):
     @classmethod
     def failed(cls):
         try:
-            return cls.objects.get(name="Failed")
+            state, created = cls.objects.get_or_create(name="Failed")
+            return state
         except Exception as e:
             lgr.exception("State model - failed exception: %s" % e)
             return None
@@ -88,7 +95,8 @@ class State(GenericBaseModel):
     @classmethod
     def sent(cls):
         try:
-            return cls.objects.get(name="Sent")
+            state, created = cls.objects.get_or_create(name="Sent")
+            return state
         except Exception as e:
             lgr.exception("State model - sent exception: %s" % e)
             return None

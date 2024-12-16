@@ -25,31 +25,26 @@ class UsersAdministration(TransactionLogBase):
         try:
             transaction = self.log_transaction(transaction_type="CreateUser", request=request)
             if not transaction:
-                return JsonResponse({"code": "999.999.001", "message": "Transaction not created"})
+                raise Exception("Transaction log not created")
             data = get_request_data(request)
-            username = data.get("username", "")
             email = data.get("email", "")
             phone_number = data.get("phone_number", "")
-            if not username or not email or not phone_number:
-                response = {"code": "999.999.002", "message": "Provide all required details"}
-                self.mark_transaction_failed(transaction=transaction, response=response)
-            if UserService().get(username=username, state=State.active()):
-                response = {"code": "999.999.003", "message": "Username already exists"}
-                self.mark_transaction_failed(transaction, response=response)
-                return JsonResponse(response)
+            if not email:
+                raise Exception("Email address not provided")
+            if not email or not phone_number:
+                raise Exception("Phone number not provided")
+            # TODO: GENERATE USERNAME AUTOMATICALLY
+            username = ""
             role = RoleService().get(name=data.get("role", ""))
             if not role:
-                response = {"code": "999.999.004", "message": "Invalid role"}
-                self.mark_transaction_failed(transaction, response=response)
-                return JsonResponse(response)
-            data.update({"role": role})
+                raise Exception("Invalid role")
+            data["role"] = role
             user = UserService().create(**data)
             if not user:
-                response = {"code": "999.999.005", "message": "User not created"}
-                self.mark_transaction_failed(transaction, response=response)
-                return JsonResponse(response)
+                raise Exception("User not created")
             password = generate_password()
             user.set_password(password)
+            user.save()
             notification_msg = "Welcome, use your username - %s  and password - %s to login" % (username, password)
             notification_details = create_notification_detail(
                 message_code="SC0009", message_type="2", message=notification_msg, destination=user.email)
@@ -58,14 +53,14 @@ class UsersAdministration(TransactionLogBase):
             return JsonResponse(response)
         except Exception as e:
             lgr.exception("Create user exception: %s" % e)
-            response = {"code": "999.999.999", "message": "Create user failed with an exception"}
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
             self.mark_transaction_failed(transaction, response=response)
             return JsonResponse(response)
 
     @csrf_exempt
     def deactivate_user(self, request):
         """
-        Deletes a user
+        Deactivates a user
         @params: WSGI Request
         @return: success or failure message
         @rtype: JsonResponse
@@ -74,19 +69,15 @@ class UsersAdministration(TransactionLogBase):
         try:
             transaction = self.log_transaction("DeleteUser", request=request)
             if not transaction:
-                return JsonResponse({"code": "999.999.001", "message": "Transaction not created"})
+                raise Exception("Transaction log not created")
             data = get_request_data(request)
             user_id = data.get("user_id", "")
             user = UserService().get(id=user_id, state=State.active())
             if not user:
-                response = {"code": "999.999.002", "message": "User not found"}
-                self.mark_transaction_failed(transaction, response=response)
-                return JsonResponse(response)
+                raise Exception("User does not exist")
             if not UserService().update(pk=user_id, state=State.inactive()):
-                response = {"code": "999.999.003", "message": "User not deactivated"}
-                self.mark_transaction_failed(transaction, response=response)
-                return JsonResponse(response)
-            notification_msg = "Your account has been deactivated successfully"
+               raise Exception("User not deactivated")
+            notification_msg = "User, username: %s has been deactivated successfully" % user.username
             notification_details = create_notification_detail(
                 message_code="SC0009", message_type="2", message=notification_msg, destination=user.email)
             response = {"code": "100.000.000", "message": "User deactivated successfully"}
@@ -94,7 +85,7 @@ class UsersAdministration(TransactionLogBase):
             return JsonResponse(response)
         except Exception as e:
             lgr.exception("Deactivate user exception: %s" % e)
-            response = {"code": "999.999.999", "message": "Deactivate user failed with an exception"}
+            response = {"code": "999.999.999", "message": "Deactivate user failed with an exception", "error": e}
             self.mark_transaction_failed(transaction, response=response)
             return JsonResponse(response)
 
@@ -109,12 +100,13 @@ class UsersAdministration(TransactionLogBase):
         try:
             data = get_request_data(request)
             user_id = data.pop("user_id", "")
+            data.pop("token", "")
             user = UserService().get(id=user_id, state=State.active())
             if not user:
-                return JsonResponse({"code": "999.999.001", "message": "User not found"})
+                raise Exception("User not found")
             if not UserService().update(pk=user_id, **data):
-                return JsonResponse({"code": "999.999.003", "message": "User not edited"})
+                raise Exception("User not edited")
             return JsonResponse({"code": "100.000.000", "message": "User edited successfully"})
         except Exception as e:
             lgr.exception("Edit user exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Edit user failed with an exception"})
+            return JsonResponse({"code": "999.999.999", "message": "Edit user failed with an exception", "error": e})
