@@ -59,7 +59,7 @@ class RolePermission(BaseModel):
     state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "%s - %s" % (self.role.name, self.permission.name)
+        return "%s - %s" % (self.role, self.permission)
 
     class Meta:
         ordering = ('-date_created',)
@@ -98,7 +98,7 @@ class ExtendedPermission(BaseModel):
     permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "%s %s" % (self.user.username, self.permission.name)
+        return "%s %s" % (self.user, self.permission)
 
     class Meta:
         ordering = ('-date_created',)

@@ -134,6 +134,9 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+TOKEN_EXPIRY_SECONDS = 20000
+OTP_VALID_SECONDS = 86400
+
 # AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 # AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 # AWS_STORAGE_BUCKET_NAME = 's3-school-management'
