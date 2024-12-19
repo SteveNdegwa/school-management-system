@@ -101,6 +101,33 @@ class State(GenericBaseModel):
             lgr.exception("State model - sent exception: %s" % e)
             return None
 
+    @classmethod
+    def issued(cls):
+        try:
+            state, created = cls.objects.get_or_create(name="Issued")
+            return state
+        except Exception as e:
+            lgr.exception("State model - issued exception: %s" % e)
+            return None
+
+    @classmethod
+    def idle(cls):
+        try:
+            state, created = cls.objects.get_or_create(name="Idle")
+            return state
+        except Exception as e:
+            lgr.exception("State model - idle exception: %s" % e)
+            return None
+
+    @classmethod
+    def returned(cls):
+        try:
+            state, created = cls.objects.get_or_create(name="Returned")
+            return state
+        except Exception as e:
+            lgr.exception("State model - returned exception: %s" % e)
+            return None
+
 class TransactionType(GenericBaseModel):
     state = models.ForeignKey(State, null=True, blank=True, default=State.active, on_delete=models.CASCADE)
 
@@ -150,3 +177,54 @@ class Notification(BaseModel):
 
     class Meta:
         ordering = ('-date_created',)
+
+class School(GenericBaseModel):
+    code = models.CharField(max_length=20, unique=True)
+    state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return  "%s-%s" % (self.name, self.code)
+    
+    class Meta:
+        ordering = ('-date_created',)
+
+    @classmethod
+    def default(cls):
+        try:
+            school, created = cls.objects.get_or_create(
+                name="St Mary's Academy - Kairi", code="SMA-KAIRI", state=State.active)
+            return school
+        except Exception as e:
+            lgr.exception("School model - default exception: %s" % e)
+            return None
+
+class ClassRoom(GenericBaseModel):
+    school = models.ForeignKey(School, on_delete=models.CASCADE)
+    state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "%s-%s" % (self.name, self.school)
+    
+    class Meta:
+        ordering = ('-date_created',)
+
+class Subject(GenericBaseModel):
+    state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ('-date_created',)
+
+    @classmethod
+    def default(cls):
+        try:
+            subject, created = cls.objects.get_or_create(name="Other", state=State.active)
+            return subject
+        except Exception as e:
+            lgr.exception("Subject model - default exception: %s" % e)
+            return None
+
+
+

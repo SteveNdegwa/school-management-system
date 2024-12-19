@@ -44,8 +44,9 @@ class ServiceBase(object):
 
     def get_or_create(self, *args, **kwargs):
         try:
-            return self.manager.get_or_create(**kwargs)
+            instance, created = self.manager.get_or_create(**kwargs)
+            return instance
         except Exception as e:
             lgr.exception('%s Service get_or_create exception: %s' %(self.manager.model.__name__, e))
-            return None, False
+            return None
 

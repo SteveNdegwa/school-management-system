@@ -3,7 +3,7 @@ import logging
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
 
-from base.models import GenericBaseModel, State, BaseModel
+from base.models import GenericBaseModel, State, BaseModel, School, Class
 
 lgr = logging.getLogger(__name__)
 lgr.propagate = False
@@ -18,18 +18,36 @@ class Role(GenericBaseModel):
         ordering = ('-date_created',)
 
     @classmethod
+    def super_admin(cls):
+        try:
+            role, created = cls.objects.get_or_create(name="SuperAdmin", state=State.active())
+            return role
+        except Exception as e:
+            lgr.exception("Role model - super_admin exception: %s" % e)
+            return None
+
+    @classmethod
     def admin(cls):
         try:
-            role, created = cls.objects.get_or_create(name="Admin")
+            role, created = cls.objects.get_or_create(name="Admin", state=State.active())
             return role
         except Exception as e:
             lgr.exception("Role model - admin exception: %s" % e)
             return None
 
     @classmethod
+    def clerk(cls):
+        try:
+            role, created = cls.objects.get_or_create(name="Clerk", state=State.active())
+            return role
+        except Exception as e:
+            lgr.exception("Role model - clerk exception: %s" % e)
+            return None
+
+    @classmethod
     def student(cls):
         try:
-            role, created = cls.objects.get_or_create(name="Student")
+            role, created = cls.objects.get_or_create(name="Student", state=State.active())
             return role
         except Exception as e:
             lgr.exception("Role model - student exception: %s" % e)
@@ -38,7 +56,7 @@ class Role(GenericBaseModel):
     @classmethod
     def teacher(cls):
         try:
-            role, created = cls.objects.get_or_create(name="Teacher")
+            role, created = cls.objects.get_or_create(name="Teacher", state=State.active())
             return role
         except Exception as e:
             lgr.exception("Role model - teacher exception: %s" % e)
@@ -73,16 +91,15 @@ class User(BaseModel, AbstractUser):
         ('other', 'Other'),
     ]
     DEFAULT_GENDER = "other"
-    DEFAULT_ROLE = Role.admin
 
     other_name = models.CharField(max_length=100, blank=True, null=True)
     gender = models.CharField(max_length=100, default=DEFAULT_GENDER, choices=GENDER)
     id_no = models.CharField(max_length=20, null=True, blank=True, unique=True)
     reg_no = models.CharField(max_length=20, editable=False, unique=True)
-    tsc_no = models.CharField(max_length=20, null=True, blank=True, unique=True)
     phone_number = models.CharField(max_length=100, blank=True, null=True)
     other_phone_number = models.CharField(max_length=100, blank=True, null=True)
-    role = models.ForeignKey(Role, default=DEFAULT_ROLE, editable=False, on_delete=models.CASCADE)
+    school = models.ForeignKey(School, default=School.default, on_delete=models.CASCADE)
+    role = models.ForeignKey(Role, default=Role.admin, editable=False, on_delete=models.CASCADE)
     state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
 
     objects = UserManager()
@@ -99,6 +116,17 @@ class ExtendedPermission(BaseModel):
 
     def __str__(self):
         return "%s %s" % (self.user, self.permission)
+
+    class Meta:
+        ordering = ('-date_created',)
+
+class StudentClass(BaseModel):
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    cls =  models.ForeignKey(Class, on_delete=models.CASCADE)
+    state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "%s-%s" % (self.student, self.cls)
 
     class Meta:
         ordering = ('-date_created',)

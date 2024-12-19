@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from base.models import State, TransactionType, Transaction, NotificationType, Notification
+from base.models import State, TransactionType, Transaction, NotificationType, Notification, School, Class, Subject
 
 
 @admin.register(State)
@@ -30,4 +30,19 @@ class NotificationAdmin(admin.ModelAdmin):
 	list_display = (
 		'notification_type', 'title', 'message', 'destination', 'state', 'date_modified', 'date_created')
 	search_fields = ('notification_type__name', 'title', 'message', 'destination', 'state')
+
+@admin.register(School)
+class SchoolAdmin(admin.ModelAdmin):
+	list_display = ('code', 'name', 'state', 'date_modified', 'date_created')
+	search_fields = ('code', 'name', 'state__name')
+
+@admin.register(Class)
+class ClassAdmin(admin.ModelAdmin):
+	list_display = ('name', 'school', 'state', 'date_modified', 'date_created')
+	search_fields = ('school__name', 'school__code', 'name', 'state__name')
+
+@admin.register(Subject)
+class SubjectAdmin(admin.ModelAdmin):
+	list_display = ('name', 'state', 'date_modified', 'date_created')
+	search_fields = ('name', 'state__name')
 

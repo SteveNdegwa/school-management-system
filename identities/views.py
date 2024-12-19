@@ -43,7 +43,7 @@ class IdentitiesAdministration(TransactionLogBase):
                 raise Exception("Wrong credentials")
             IdentityService().filter(
                 user=user, state=State.active(), expires_at__lt=timezone.now()).update(state=State.expired())
-            oauth = IdentityService().filter(state=State.active(), user=user, expires_at__gt=timezone.now()).first()
+            oauth = IdentityService().filter(user=user, state=State.active(), expires_at__gt=timezone.now()).first()
             if not oauth:
                 oauth = IdentityService().create(user=user, source_ip=source_ip, state=State.activation_pending())
                 if not oauth:

@@ -1,4 +1,4 @@
-from base.models import State, TransactionType, Transaction, NotificationType, Notification
+from base.models import State, TransactionType, Transaction, NotificationType, Notification, ClassRoom, School, Subject
 from utils.ServiceBase import ServiceBase
 
 
@@ -16,3 +16,12 @@ class NotificationTypeService(ServiceBase):
 
 class NotificationService(ServiceBase):
     manager = Notification.objects
+
+class SchoolService(ServiceBase):
+    manager = School.objects
+
+class ClassRoomService(ServiceBase):
+    manager = ClassRoom.objects
+
+class SubjectService(ServiceBase):
+    manager = Subject.objects

@@ -3,8 +3,11 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from base.backend.services import SchoolService
 from base.models import State
-from users.backend.services import UserService, RoleService
+from users.backend.decorators import user_login_required, super_admin, admin
+from users.backend.services import UserService
+from users.models import Role
 from utils.common import generate_password, create_notification_detail
 from utils.get_request_data import get_request_data
 from utils.transaction_log_base import TransactionLogBase
@@ -14,31 +17,147 @@ lgr.propagate = False
 
 class UsersAdministration(TransactionLogBase):
     @csrf_exempt
-    def create_user(self, request):
+    @user_login_required
+    @super_admin
+    def create_super_admin(self, request:object):
         """
-        Creates a user
-        @params: WSGI Request
-        @return: success or failure message
-        @rtype: JsonResponse
+        Creates a super admin
         """
         transaction = None
         try:
-            transaction = self.log_transaction(transaction_type="CreateUser", request=request)
+            transaction = self.log_transaction(transaction_type="CreateSuperAdmin", request=request)
             if not transaction:
                 raise Exception("Transaction log not created")
             data = get_request_data(request)
+            data.pop("user_id", "")
+            data.pop("token", "")
+            data.update({"role": Role.super_admin(), "is_superuser": True, "is_staff": True})
+            return self.create_user(data=data, transaction=transaction)
+        except Exception as e:
+            lgr.exception("Create super admin exception: %s" % e)
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
+            self.mark_transaction_failed(transaction, response=response)
+            return JsonResponse(response)
+
+    @csrf_exempt
+    @user_login_required
+    @super_admin
+    def create_admin(self, request: object):
+        """
+        Creates an admin
+        """
+        transaction = None
+        try:
+            transaction = self.log_transaction(transaction_type="CreateAdmin", request=request)
+            if not transaction:
+                raise Exception("Transaction log not created")
+            data = get_request_data(request)
+            data.pop("user_id", "")
+            data.pop("token", "")
+            data.update({"role": Role.admin(), "is_superuser": False, "is_staff": False})
+            return self.create_user(data=data, transaction=transaction)
+        except Exception as e:
+            lgr.exception("Create admin exception: %s" % e)
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
+            self.mark_transaction_failed(transaction, response=response)
+            return JsonResponse(response)
+
+    @csrf_exempt
+    @user_login_required
+    @admin
+    def create_clerk(self, request: object):
+        """
+        Creates a clerk
+        """
+        transaction = None
+        try:
+            transaction = self.log_transaction(transaction_type="CreateClerk", request=request)
+            if not transaction:
+                raise Exception("Transaction log not created")
+            data = get_request_data(request)
+            data.pop("user_id", "")
+            data.pop("token", "")
+            data.update({"role": Role.clerk(), "is_superuser": False, "is_staff": False})
+            return self.create_user(data=data, transaction=transaction)
+        except Exception as e:
+            lgr.exception("Create clerk exception: %s" % e)
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
+            self.mark_transaction_failed(transaction, response=response)
+            return JsonResponse(response)
+
+    @csrf_exempt
+    @user_login_required
+    def create_student(self, request: object):
+        """
+        Creates a student
+        """
+        transaction = None
+        try:
+            transaction = self.log_transaction(transaction_type="CreateStudent", request=request)
+            if not transaction:
+                raise Exception("Transaction log not created")
+            data = get_request_data(request)
+            data.pop("user_id", "")
+            data.pop("token", "")
+            data.update({"role": Role.student(), "is_superuser": False, "is_staff": False})
+            return self.create_user(data=data, transaction=transaction)
+        except Exception as e:
+            lgr.exception("Create student exception: %s" % e)
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
+            self.mark_transaction_failed(transaction, response=response)
+            return JsonResponse(response)
+
+    @csrf_exempt
+    @user_login_required
+    def create_teacher(self, request: object):
+        """
+        Creates a teacher
+        """
+        transaction = None
+        try:
+            transaction = self.log_transaction(transaction_type="CreateTeacher", request=request)
+            if not transaction:
+                raise Exception("Transaction log not created")
+            data = get_request_data(request)
+            data.pop("user_id", "")
+            data.pop("token", "")
+            data.update({"role": Role.teacher(), "is_superuser": False, "is_staff": False})
+            return self.create_user(data=data, transaction=transaction)
+        except Exception as e:
+            lgr.exception("Create teacher exception: %s" % e)
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
+            self.mark_transaction_failed(transaction, response=response)
+            return JsonResponse(response)
+
+    def create_user(self, data:dict, transaction:object):
+        """
+        Creates a user
+        @params: user data, transaction log
+        @return: success or failure message
+        @rtype: JsonResponse
+        """
+        try:
             email = data.get("email", "")
             phone_number = data.get("phone_number", "")
+            first_name = data.get("first_name", "")
+            last_name = data.get("last_name", "")
+            school_code = data.get("school", "")
             if not email:
                 raise Exception("Email address not provided")
-            if not email or not phone_number:
+            if not phone_number:
                 raise Exception("Phone number not provided")
+            if not first_name:
+                raise Exception("First name not provided")
+            if not last_name:
+                raise Exception("Last name not provided")
+            if not school_code:
+                raise Exception("School code not provided")
+            school = SchoolService().get(code=school_code, state=State.active())
+            if not school:
+                raise Exception("School not found")
+            data["school"] = school
             # TODO: GENERATE USERNAME AUTOMATICALLY
             username = ""
-            role = RoleService().get(name=data.get("role", ""))
-            if not role:
-                raise Exception("Invalid role")
-            data["role"] = role
             user = UserService().create(**data)
             if not user:
                 raise Exception("User not created")
@@ -58,6 +177,7 @@ class UsersAdministration(TransactionLogBase):
             return JsonResponse(response)
 
     @csrf_exempt
+    @user_login_required
     def deactivate_user(self, request):
         """
         Deactivates a user
@@ -75,7 +195,7 @@ class UsersAdministration(TransactionLogBase):
             user = UserService().get(id=user_id, state=State.active())
             if not user:
                 raise Exception("User does not exist")
-            if not UserService().update(pk=user_id, state=State.inactive()):
+            if not UserService().update(pk=user.id, state=State.inactive()):
                raise Exception("User not deactivated")
             notification_msg = "User, username: %s has been deactivated successfully" % user.username
             notification_details = create_notification_detail(
@@ -90,6 +210,7 @@ class UsersAdministration(TransactionLogBase):
             return JsonResponse(response)
 
     @csrf_exempt
+    @user_login_required
     def edit_user(self, request):
         """
         Edits a user's details
@@ -104,7 +225,7 @@ class UsersAdministration(TransactionLogBase):
             user = UserService().get(id=user_id, state=State.active())
             if not user:
                 raise Exception("User not found")
-            if not UserService().update(pk=user_id, **data):
+            if not UserService().update(pk=user.id, **data):
                 raise Exception("User not edited")
             return JsonResponse({"code": "100.000.000", "message": "User edited successfully"})
         except Exception as e:
