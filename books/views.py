@@ -33,10 +33,10 @@ class BooksAdministration(object):
             if not title:
                 raise Exception("Book title not provided")
             publication_year = data.get("publication_year", "")
-            school_code = str(data.get("school", "")).lower()
-            if not school_code:
-                raise Exception("School code not provided")
-            school = SchoolService().get(code=school_code, state=State.active())
+            school_id = str(data.get("school", "")).lower()
+            if not school_id:
+                raise Exception("School id not provided")
+            school = SchoolService().get(id=school_id, state=State.active())
             if not school:
                 raise Exception("School not found")
             author = str(data.get("author", "")).title().strip()
@@ -88,10 +88,10 @@ class BooksAdministration(object):
             if not title:
                 raise Exception("Book title not provided")
             publication_year = data.get("publication_year", "")
-            school_code = str(data.get("school", "")).lower()
-            if not school_code:
-                raise Exception("School code not provided")
-            school = SchoolService().get(code=school_code, state=State.active())
+            school_id = str(data.get("school", "")).lower()
+            if not school_id:
+                raise Exception("School id not provided")
+            school = SchoolService().get(code=school_id, state=State.active())
             if not school:
                 raise Exception("School not found")
             author = str(data.get("author", "")).title().strip()
@@ -242,23 +242,23 @@ class BooksAdministration(object):
             book = BookService().get(id=book_id)
             if not book:
                 raise Exception("Book not found")
-            book_data = BookService().filter(id=book_id).annotate(school=F("school__code")) \
+            book_data = BookService().filter(id=book_id).annotate(school=F("school__id")) \
                 .annotate(author=F("author__name")).annotate(publisher=F("publisher__name")) \
                 .annotate(category=F("category__name")).annotate(subject=F("subject__name")) \
                 .annotate(state=F("state__name")).values(
                 "id", "number", "title", "school", "author", "publisher", "category", "subject", "publication_year",
-                "state")
+                "state").first()
             issue_history = UserBookService().filter(book=book, state=State.returned()) \
                 .annotate(user_id=F("user__id")).annotate(first_name=F("user__first_name")) \
                 .annotate(last_name=F("user__last_name")).annotate(from_date=F("date_created")) \
                 .annotate(to_date=F("date_modified")).values(
                 "user_id", "first_name", "last_name", "from_date", "to_date")
-            book_data["issue_history"] = issue_history
+            book_data["issue_history"] = list(issue_history)
             if book_data.state == State.issued():
                 issued_to = UserBookService().filter(book=book, state=State.active()) \
                     .annotate(user_id=F("user__id")).annotate(first_name=F("user__first_name")) \
                     .annotate(last_name=F("user__last_name")).annotate(from_date=F("date_created")).values(
-                    "user_id", "first_name", "last_name", "from_date")
+                    "user_id", "first_name", "last_name", "from_date").first()
                 book_data["issued_to"] = issued_to
             return JsonResponse({
                 "code": "100.000.000", "message": "Successfully fetched book's details", "data": book_data})
@@ -303,12 +303,13 @@ class BooksAdministration(object):
                 state = data.get("state")
                 state = StateService().get(name=state)
                 data["state"] = state
-            filter_results = BookService().filter(**data).annotate(school=F("school__code")) \
+            filter_results = BookService().filter(**data).annotate(school=F("school__id")) \
                 .annotate(author=F("author__name")).annotate(publisher=F("publisher__name")) \
                 .annotate(category=F("category__name")).annotate(subject=F("subject__name")) \
                 .annotate(state=F("state__name")).values(
                 "id", "number", "title", "school", "author", "publisher", "category", "subject", "publication_year",
                 "state")
+            filter_results = list(filter_results)
             return JsonResponse({
                 "code": "100.000.000", "message": "Successfully filtered books", "data": filter_results})
         except Exception as e:
@@ -325,7 +326,7 @@ class BooksAdministration(object):
         @rtype: JsonResponse
         """
         try:
-            data = AuthorService().filter(state=State.active()).values()
+            data = list(AuthorService().filter(state=State.active()).values("name"))
             return JsonResponse({"code": "100.000.000", "message": "Successfully fetched authors", "data": data})
         except Exception as e:
             lgr.exception("Get authors exception: %s" % e)
@@ -341,7 +342,8 @@ class BooksAdministration(object):
         @rtype: JsonResponse
         """
         try:
-            data = PublisherService().filter(state=State.active()).values()
+            data = list(PublisherService().filter(state=State.active()).values(
+                "name", "address", "phone_number", "email"))
             return JsonResponse({"code": "100.000.000", "message": "Successfully fetched publishers", "data": data})
         except Exception as e:
             lgr.exception("Get publishers exception: %s" % e)
@@ -357,7 +359,7 @@ class BooksAdministration(object):
         @rtype: JsonResponse
         """
         try:
-            data = BookCategoryService().filter(state=State.active()).values()
+            data = list(BookCategoryService().filter(state=State.active()).values("name"))
             return JsonResponse({
                 "code": "100.000.000", "message": "Successfully fetched book categories", "data": data})
         except Exception as e:

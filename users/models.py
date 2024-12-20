@@ -3,7 +3,7 @@ import logging
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
 
-from base.models import GenericBaseModel, State, BaseModel, School, Class
+from base.models import GenericBaseModel, State, BaseModel, School, Classroom
 
 lgr = logging.getLogger(__name__)
 lgr.propagate = False
@@ -120,13 +120,13 @@ class ExtendedPermission(BaseModel):
     class Meta:
         ordering = ('-date_created',)
 
-class StudentClass(BaseModel):
+class StudentClassroom(BaseModel):
     student = models.ForeignKey(User, on_delete=models.CASCADE)
-    cls =  models.ForeignKey(Class, on_delete=models.CASCADE)
+    classroom =  models.ForeignKey(Classroom, on_delete=models.CASCADE)
     state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "%s-%s" % (self.student, self.cls)
+        return "%s-%s" % (self.student, self.classroom)
 
     class Meta:
         ordering = ('-date_created',)

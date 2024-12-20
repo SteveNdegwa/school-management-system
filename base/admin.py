@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from base.models import State, TransactionType, Transaction, NotificationType, Notification, School, Class, Subject
+from base.models import State, TransactionType, Transaction, NotificationType, Notification, School, Classroom, Subject
 
 
 @admin.register(State)
@@ -36,8 +36,8 @@ class SchoolAdmin(admin.ModelAdmin):
 	list_display = ('code', 'name', 'state', 'date_modified', 'date_created')
 	search_fields = ('code', 'name', 'state__name')
 
-@admin.register(Class)
-class ClassAdmin(admin.ModelAdmin):
+@admin.register(Classroom)
+class ClassroomAdmin(admin.ModelAdmin):
 	list_display = ('name', 'school', 'state', 'date_modified', 'date_created')
 	search_fields = ('school__name', 'school__code', 'name', 'state__name')
 
@@ -45,4 +45,3 @@ class ClassAdmin(admin.ModelAdmin):
 class SubjectAdmin(admin.ModelAdmin):
 	list_display = ('name', 'state', 'date_modified', 'date_created')
 	search_fields = ('name', 'state__name')
-

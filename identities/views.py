@@ -29,7 +29,7 @@ class IdentitiesAdministration(TransactionLogBase):
         """
         try:
             data = get_request_data(request)
-            username = data.get("username", "")
+            username = str(data.get("username", "")).lower()
             if not username:
                 raise Exception("Username not provided")
             password = data.get("password", "")

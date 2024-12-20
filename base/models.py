@@ -198,7 +198,7 @@ class School(GenericBaseModel):
             lgr.exception("School model - default exception: %s" % e)
             return None
 
-class ClassRoom(GenericBaseModel):
+class Classroom(GenericBaseModel):
     school = models.ForeignKey(School, on_delete=models.CASCADE)
     state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
 
