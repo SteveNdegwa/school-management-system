@@ -91,7 +91,7 @@ class BooksAdministration(object):
             school_id = str(data.get("school", "")).lower()
             if not school_id:
                 raise Exception("School id not provided")
-            school = SchoolService().get(code=school_id, state=State.active())
+            school = SchoolService().get(id=school_id, state=State.active())
             if not school:
                 raise Exception("School not found")
             author = str(data.get("author", "")).title().strip()
@@ -279,10 +279,13 @@ class BooksAdministration(object):
             data = get_request_data(request)
             data.pop("user_id", "")
             data.pop("token", "")
-            if "school" in data:
-                school = data.get("school")
-                school = SchoolService().get(code=school, state=State.active())
-                data["school"] = school
+            school_id = data.get("school", "")
+            if not school_id:
+                raise Exception("School id not provided")
+            school = SchoolService().get(id=school_id, state=State.active())
+            if not school:
+                raise Exception("School not found")
+            data["school"] = school
             if "author" in data:
                 author = data.get("author")
                 author = AuthorService().get(name=author, state=State.active())
