@@ -1,9 +1,10 @@
 import logging
 
+from django.db import transaction as trx
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from base.backend.services import SchoolService
+from base.backend.services import SchoolService, ClassroomService
 from base.models import State
 from users.backend.decorators import user_login_required, super_admin, admin
 from users.backend.services import UserService
@@ -99,7 +100,13 @@ class UsersAdministration(TransactionLogBase):
             data = get_request_data(request)
             data.pop("user_id", "")
             data.pop("token", "")
-            data.update({"role": Role.student(), "is_superuser": False, "is_staff": False})
+            classroom_id = data.get("classroom_id", '')
+            if not classroom_id:
+                raise Exception("Classroom id not provided")
+            classroom = ClassroomService().get(id=classroom_id, state=State.active())
+            if not classroom:
+                raise Exception("Classroom not found")
+            data.update({"role": Role.student(), "classroom":classroom, "is_superuser": False, "is_staff": False})
             return self.create_user(data=data, transaction=transaction)
         except Exception as e:
             lgr.exception("Create student exception: %s" % e)
@@ -129,6 +136,7 @@ class UsersAdministration(TransactionLogBase):
             self.mark_transaction_failed(transaction, response=response)
             return JsonResponse(response)
 
+    @trx.atomic
     def create_user(self, data:dict, transaction:object):
         """
         Creates a user
@@ -142,6 +150,8 @@ class UsersAdministration(TransactionLogBase):
             first_name = data.get("first_name", "")
             last_name = data.get("last_name", "")
             school_code = data.get("school", "")
+
+            # Verify all required details are provided
             if not email:
                 raise Exception("Email address not provided")
             if not phone_number:
@@ -152,21 +162,30 @@ class UsersAdministration(TransactionLogBase):
                 raise Exception("Last name not provided")
             if not school_code:
                 raise Exception("School code not provided")
+
+            # check if school is valid
             school = SchoolService().get(code=school_code, state=State.active())
             if not school:
                 raise Exception("School not found")
             data["school"] = school
+
+            # Generate username
             # TODO: GENERATE USERNAME AUTOMATICALLY
             username = ""
+
+            # Create user
             user = UserService().create(**data)
             if not user:
                 raise Exception("User not created")
             password = generate_password()
             user.set_password(password)
             user.save()
+
+            # Create notification
             notification_msg = "Welcome, use your username - %s  and password - %s to login" % (username, password)
             notification_details = create_notification_detail(
                 message_code="SC0009", message_type="2", message=notification_msg, destination=user.email)
+
             response = {"code": "100.000.000", "message": "User created successfully"}
             self.complete_transaction(transaction, response=response, notification_details=notification_details)
             return JsonResponse(response)
@@ -187,7 +206,7 @@ class UsersAdministration(TransactionLogBase):
         """
         transaction = None
         try:
-            transaction = self.log_transaction("DeleteUser", request=request)
+            transaction = self.log_transaction("DeactivateUser", request=request)
             if not transaction:
                 raise Exception("Transaction log not created")
             data = get_request_data(request)
@@ -195,7 +214,7 @@ class UsersAdministration(TransactionLogBase):
             user = UserService().get(id=user_id, state=State.active())
             if not user:
                 raise Exception("User does not exist")
-            if not UserService().update(pk=user.id, state=State.inactive()):
+            if not UserService().update(pk=user.id, classroom=None, state=State.inactive()):
                raise Exception("User not deactivated")
             notification_msg = "User, username: %s has been deactivated successfully" % user.username
             notification_details = create_notification_detail(
@@ -225,6 +244,12 @@ class UsersAdministration(TransactionLogBase):
             user = UserService().get(id=user_id, state=State.active())
             if not user:
                 raise Exception("User not found")
+            if "classroom_id" in data:
+                classroom_id = data.pop("classroom_id")
+                classroom = ClassroomService().get(id=classroom_id, state=State.active())
+                if not classroom:
+                    raise Exception("Classroom not found")
+                data["classroom"] = classroom
             if not UserService().update(pk=user.id, **data):
                 raise Exception("User not edited")
             return JsonResponse({"code": "100.000.000", "message": "User edited successfully"})

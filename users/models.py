@@ -1,5 +1,6 @@
 import logging
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
 
@@ -95,10 +96,11 @@ class User(BaseModel, AbstractUser):
     other_name = models.CharField(max_length=100, blank=True, null=True)
     gender = models.CharField(max_length=100, default=DEFAULT_GENDER, choices=GENDER)
     id_no = models.CharField(max_length=20, null=True, blank=True, unique=True)
-    reg_no = models.CharField(max_length=20, editable=False, unique=True)
+    reg_no = models.CharField(max_length=20, null=True, blank=True)
     phone_number = models.CharField(max_length=100, blank=True, null=True)
     other_phone_number = models.CharField(max_length=100, blank=True, null=True)
     school = models.ForeignKey(School, default=School.default, on_delete=models.CASCADE)
+    classroom = models.ForeignKey(Classroom, null=True, blank=True, on_delete=models.CASCADE)
     role = models.ForeignKey(Role, default=Role.admin, editable=False, on_delete=models.CASCADE)
     state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
 
@@ -110,23 +112,23 @@ class User(BaseModel, AbstractUser):
     class Meta:
         ordering = ('-date_created',)
 
+    def save(self, *args, **kwargs):
+        if not self.role:
+            raise ValidationError("A user must have a role")
+        if self.state == State.active() and self.role == Role.student() and not self.classroom:
+            raise ValidationError("A student must be assigned to a classroom")
+        if self.role != Role.student() and self.classroom:
+            raise ValidationError("Only a student can be assigned to a classroom")
+        if self.state == State.inactive() and self.classroom:
+            raise ValidationError("An inactive student cannot be assigned to a classroom")
+        super(User, self).save(*args, **kwargs)
+
 class ExtendedPermission(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
 
     def __str__(self):
         return "%s %s" % (self.user, self.permission)
-
-    class Meta:
-        ordering = ('-date_created',)
-
-class StudentClassroom(BaseModel):
-    student = models.ForeignKey(User, on_delete=models.CASCADE)
-    classroom =  models.ForeignKey(Classroom, on_delete=models.CASCADE)
-    state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return "%s-%s" % (self.student, self.classroom)
 
     class Meta:
         ordering = ('-date_created',)

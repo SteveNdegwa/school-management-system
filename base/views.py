@@ -1,13 +1,12 @@
 import logging
 
-from django.db.models import F
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 from base.backend.services import ClassroomService, SchoolService, SubjectService
 from base.models import State
 from users.backend.decorators import user_login_required
-from users.backend.services import StudentClassroomService
+from users.backend.services import UserService
 from utils.get_request_data import get_request_data
 
 lgr = logging.getLogger(__name__)
@@ -92,47 +91,13 @@ class BaseAdministration(object):
             classroom = ClassroomService().get(id=classroom_id, state=State.active())
             if not classroom:
                 raise Exception("Classroom not found")
-            if StudentClassroomService().filter(classroom):
+            if UserService().filter(classroom=classroom, state=State.active()):
                 raise Exception("Classroom can not be deleted: Students assigned to the classroom")
             classroom.delete()
             return JsonResponse({"code": "100.000.000", "message": "Classroom deleted successfully"})
         except Exception as e:
             lgr.exception("Delete classroom exception: %s" % e)
             return JsonResponse({"code": "999.999.999", "message": "Delete classroom exception", "error": e})
-
-    @csrf_exempt
-    @user_login_required
-    def get_classroom(self, request):
-        """
-        Fetches a classroom
-        @param: WSGI Request
-        @return: Success message and classroom data or error message
-        @rtype: JsonResponse
-        """
-        try:
-            data = get_request_data(request)
-            classroom_id = data.get("classroom_id", "")
-            if not classroom_id:
-                raise Exception("Classroom id not provided")
-            classroom = ClassroomService().get(id=classroom_id, state=State.active())
-            if not classroom:
-                raise Exception("Classroom not found")
-            classroom_students = StudentClassroomService().filter(classroom=classroom, state=State.active()) \
-                .annotate(id=F("student__id")).annotate(username=F("student__username")) \
-                .annotate(reg_no=F("student__reg_no")).annotate(first_name=F("student__first_name")) \
-                .annotate(last_name=F("student__last_name")).annotate(other_name=F("student__other_name")) \
-                .annotate(email=F("student__email")).annotate(phone_number=F("student__phone_number")) \
-                .annotate(other_phone_number=F("student__other_phone_number")).values(
-                "id", "username", "reg_no", "first_name", "last_name", "other_name", "email", "phone_number",
-                "other_phone_number")
-            classroom_students = list(classroom_students)
-            classroom_data = classroom.values("id", "name")
-            classroom_data["students"] = classroom_students
-            return JsonResponse({
-                "code": "100.000.000", "message": "Classroom fetched successfully", "data": classroom_data})
-        except Exception as e:
-            lgr.exception("Get classroom exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Get classroom exception", "error": e})
 
     @csrf_exempt
     @user_login_required

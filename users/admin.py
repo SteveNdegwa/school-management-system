@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 
-from users.models import Role, Permission, RolePermission, User, StudentClassroom
+from users.models import Role, Permission, RolePermission, User
 
 admin.site.unregister(Group)
 
@@ -23,27 +23,17 @@ class RolePermissionAdmin(admin.ModelAdmin):
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
 	list_display = (
-		'username', 'role', 'first_name', 'last_name', 'other_name', 'gender', 'email', 'phone_number', 'id',
-		'is_superuser', 'state', 'date_modified', 'date_created'
+		'username', 'role', 'school', 'classroom',  'first_name', 'last_name', 'gender', 'email', 'phone_number',
+		'id_no', 'state', 'date_modified', 'date_created'
 	)
-	list_filter = ('gender', 'is_superuser', 'role', 'date_created')
+	list_filter = ('role', 'school', 'classroom', 'gender', 'date_created')
 	search_fields = (
-		'username', 'first_name', 'last_name', 'other_name', 'gender', 'email', 'phone_number', 'role__name', 'id',
-		'reg_no', 'state__name'
+		'username', 'first_name', 'last_name', 'other_name', 'gender', 'email', 'phone_number', 'school__name',
+		'school__id', 'school__code', 'classroom__id', 'classroom__name', 'role__name', 'id_no', 'reg_no', 'state__name'
 	)
 	fieldsets = (
-		(
-			'User Details', {
-				'fields': ('username', 'email', 'phone_number', 'id', 'reg_no')
-			}),
+		('User Details', {'fields': ('username', 'email', 'phone_number', 'other_phone_number', 'id', 'reg_no')}),
+		('Important Info', {'fields': ('role', 'school', 'classroom')}),
 		('Other Info', {'fields': ('first_name', 'last_name', 'other_name', 'gender')}),
 		('Status', {'fields': ('state', 'is_superuser', 'is_staff', 'is_active')}),
-	)
-
-@admin.register(StudentClassroom)
-class StudentClassroomAdmin(admin.ModelAdmin):
-	list_display = ('student', 'classroom', 'state', 'date_modified', 'date_created')
-	search_fields = (
-		'student__id', 'student__first_name', 'student__last_name', 'student__reg_no', 'classroom__name',
-		'classroom__id', 'classroom__school__id', 'classroom__school__name', 'classroom__school__code', 'state__name'
 	)
