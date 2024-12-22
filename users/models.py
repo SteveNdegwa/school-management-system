@@ -101,7 +101,7 @@ class User(BaseModel, AbstractUser):
     other_phone_number = models.CharField(max_length=100, blank=True, null=True)
     school = models.ForeignKey(School, default=School.default, on_delete=models.CASCADE)
     classroom = models.ForeignKey(Classroom, null=True, blank=True, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, default=Role.admin, editable=False, on_delete=models.CASCADE)
+    role = models.ForeignKey(Role, default=Role.super_admin, on_delete=models.CASCADE)
     state = models.ForeignKey(State, default=State.active, on_delete=models.CASCADE)
 
     objects = UserManager()

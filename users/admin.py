@@ -32,7 +32,7 @@ class UserAdmin(admin.ModelAdmin):
 		'school__id', 'school__code', 'classroom__id', 'classroom__name', 'role__name', 'id_no', 'reg_no', 'state__name'
 	)
 	fieldsets = (
-		('User Details', {'fields': ('username', 'email', 'phone_number', 'other_phone_number', 'id', 'reg_no')}),
+		('User Details', {'fields': ('username', 'email', 'phone_number', 'other_phone_number', 'id_no', 'reg_no')}),
 		('Important Info', {'fields': ('role', 'school', 'classroom')}),
 		('Other Info', {'fields': ('first_name', 'last_name', 'other_name', 'gender')}),
 		('Status', {'fields': ('state', 'is_superuser', 'is_staff', 'is_active')}),

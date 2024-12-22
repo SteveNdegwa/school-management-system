@@ -23,6 +23,7 @@ class Identity(BaseModel):
 
 	class Meta(object):
 		ordering = ('-date_created',)
+		verbose_name_plural = "Identities"
 
 	def extend(self):
 		"""

@@ -191,8 +191,7 @@ class School(GenericBaseModel):
     @classmethod
     def default(cls):
         try:
-            school, created = cls.objects.get_or_create(
-                name="St Mary's Academy - Kairi", code="SMA-KAIRI", state=State.active)
+            school, created = cls.objects.get_or_create(name="Kairi St Marys", code="sma-kairi", state=State.active())
             return school
         except Exception as e:
             lgr.exception("School model - default exception: %s" % e)
