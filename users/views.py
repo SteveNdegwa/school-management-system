@@ -261,10 +261,14 @@ class UsersAdministration(TransactionLogBase):
             user_id = data.get("user_id", "")
             if not user_id:
                 raise Exception("User id not provided")
+            user = UserService().get(id=user_id)
+            if not user:
+                raise Exception("User not found")
             user_data = UserService().filter(id=user_id).annotate(role_name=F("role__name")) \
                 .annotate(state__name=F("state__name")).values(
                 "id", "username", "email", "phone_number", "other_phone_number", "first_name", "last_name",
                 "other_name", "gender", "id_no", "reg_no", "school_id", "classroom_id", "role_name", "state_name")
+            user_data["permissions"] = user.permissions
             return JsonResponse({"code": "100.000.000", "message": "Successfully fetched user", "data": user_data})
         except Exception as e:
             lgr.exception("Get user exception: %s" % e)

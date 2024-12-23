@@ -3,6 +3,7 @@ import logging
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
+from django.db.models import F
 
 from base.models import GenericBaseModel, State, BaseModel, School, Classroom
 
@@ -111,6 +112,16 @@ class User(BaseModel, AbstractUser):
 
     class Meta:
         ordering = ('-date_created',)
+
+    @property
+    def permissions(self):
+        try:
+            permissions_list = RolePermission.objects.filter(role=self.role) \
+                .annotate(permission_name=F("permission__name")).values_list("permission_name", flat=True)
+            return list(permissions_list)
+        except Exception as e:
+            lgr.exception("User model - permissions exception: %s" % e)
+            return []
 
     def save(self, *args, **kwargs):
         if not self.role:
