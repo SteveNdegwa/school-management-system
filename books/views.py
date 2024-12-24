@@ -64,7 +64,8 @@ class BooksAdministration(object):
                 "code": "100.000.000", "message": "Book created successfully", "book_id": str(book.id)})
         except Exception as e:
             lgr.exception("Create book exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Create book failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Create book failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -118,7 +119,8 @@ class BooksAdministration(object):
             return JsonResponse({"code": "100.000.000", "message": "Book edited successfully"})
         except Exception as e:
             lgr.exception("Edit book exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Edit book failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Edit book failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -139,7 +141,8 @@ class BooksAdministration(object):
             return JsonResponse({"code": "100.000.000", "message": "Book deleted successfully"})
         except Exception as e:
             lgr.exception("Delete book exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Delete book failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Delete book failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -170,7 +173,8 @@ class BooksAdministration(object):
             return JsonResponse({"code": "100.000.000", "message": "Book issued successfully"})
         except Exception as e:
             lgr.exception("Issue book exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Issue book failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Issue book failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -195,7 +199,8 @@ class BooksAdministration(object):
             return JsonResponse({"code": "100.000.000", "message": "Book returned successfully"})
         except Exception as e:
             lgr.exception("Return book exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Return book failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Return book failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -225,7 +230,8 @@ class BooksAdministration(object):
         except Exception as e:
             lgr.exception("Get user borrowing history exception: %s" % e)
             return JsonResponse({
-                "code": "999.999.999", "message": "Get user borrowing history failed with an exception", "error": e})
+                "code": "999.999.999", "message": "Get user borrowing history failed with an exception",
+                "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -267,7 +273,8 @@ class BooksAdministration(object):
                 "code": "100.000.000", "message": "Successfully fetched book's details", "data": book_data})
         except Exception as e:
             lgr.exception("Get book exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Get book failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Get book failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -319,7 +326,8 @@ class BooksAdministration(object):
                 "code": "100.000.000", "message": "Successfully filtered books", "data": filter_results})
         except Exception as e:
             lgr.exception("Filter books exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Filter books failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Filter books failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -335,7 +343,8 @@ class BooksAdministration(object):
             return JsonResponse({"code": "100.000.000", "message": "Successfully fetched authors", "data": data})
         except Exception as e:
             lgr.exception("Get authors exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Get authors failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Get authors failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -353,7 +362,7 @@ class BooksAdministration(object):
         except Exception as e:
             lgr.exception("Get publishers exception: %s" % e)
             return JsonResponse({
-                "code": "999.999.999", "message": "Get publishers failed with an exception", "error": e})
+                "code": "999.999.999", "message": "Get publishers failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -371,4 +380,4 @@ class BooksAdministration(object):
         except Exception as e:
             lgr.exception("Get book categories exception: %s" % e)
             return JsonResponse({
-                "code": "999.999.999", "message": "Get book categories failed with an exception", "error": e})
+                "code": "999.999.999", "message": "Get book categories failed with an exception", "error": str(e)})

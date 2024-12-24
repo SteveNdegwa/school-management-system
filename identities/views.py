@@ -1,6 +1,7 @@
 import calendar
 import logging
 
+from django.contrib.auth import authenticate
 from django.db.models import Q
 from django.http import JsonResponse
 from django.utils import timezone
@@ -35,12 +36,10 @@ class IdentitiesAdministration(TransactionLogBase):
             password = data.get("password", "")
             if not password:
                 raise Exception("Password not provided")
-            source_ip = get_client_ip(request)
-            user = UserService().get(username=username)
+            user = authenticate(username=username, password=password)
             if not user:
-                raise Exception("User not found")
-            if not user.check_password(password):
-                raise Exception("Wrong credentials")
+                raise Exception("Invalid credentials")
+            source_ip = get_client_ip(request)
             IdentityService().filter(
                 user=user, state=State.active(), expires_at__lt=timezone.now()).update(state=State.expired())
             oauth = IdentityService().filter(user=user, state=State.active(), expires_at__gt=timezone.now()).first()
@@ -68,7 +67,7 @@ class IdentitiesAdministration(TransactionLogBase):
                     if not oauth:
                         raise Exception("Identity not updated")
             oauth = oauth.extend()
-            user.update_last_activity()
+            user.update_last_login()
             return JsonResponse({
                 "code": "100.000.000",
                 "message": "Login successful",
@@ -80,7 +79,7 @@ class IdentitiesAdministration(TransactionLogBase):
             })
         except Exception as e:
             lgr.exception("Login exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Login failed with an exception"})
+            return JsonResponse({"code": "999.999.999", "message": "Login failed with an exception", "error": str(e)})
 
     @csrf_exempt
     def verify_totp(self, request):
@@ -116,7 +115,8 @@ class IdentitiesAdministration(TransactionLogBase):
             })
         except Exception as e:
             lgr.exception("Verify totp exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Verify totp failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Verify totp failed with an exception", "error": str(e)})
 
     @csrf_exempt
     def logout(self, request):
@@ -136,6 +136,6 @@ class IdentitiesAdministration(TransactionLogBase):
             return JsonResponse({"code": "100.000.000", "message": "User logged out successfully"})
         except Exception as e:
             lgr.exception("Logout exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Logout failed with an exception", "error": e})
+            return JsonResponse({"code": "999.999.999", "message": "Logout failed with an exception", "error": str(e)})
 
 

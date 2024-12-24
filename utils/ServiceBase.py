@@ -36,8 +36,13 @@ class ServiceBase(object):
 
     def update(self, pk, *args, **kwargs):
         try:
-            data_to_update = self.filter(id=pk)
-            return data_to_update.update(**kwargs)
+            record = self.get(id=pk)
+            if record is not None:
+                for k, v in kwargs.items():
+                    setattr(record, k, v)
+                record.save()
+                record.refresh_from_db()
+                return record
         except Exception as e:
             lgr.exception('%s Service update exception: %s' % (self.manager.model.__name__, e))
             return None

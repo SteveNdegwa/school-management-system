@@ -24,11 +24,11 @@ def user_login_required(inner_function):
                     data = get_request_data(k)
                     token = data.get("token", "")
                     if not token:
-                        return JsonResponse({"code": "888.888.001", "message": "Access token not provided"})
+                        return JsonResponse({"code": "888.888.888", "message": "Access token not provided"})
                     oauth = IdentityService().filter(
                         token=token, expires_at__gt=timezone.now(), state=State.active()).first()
                     if not oauth:
-                        return JsonResponse({"code": "888.888.002", "message": "Not authenticated"})
+                        return JsonResponse({"code": "888.888.888", "message": "Not authenticated"})
                     oauth.extend()
                     return inner_function(*args, **kwargs)
         except Exception as e:

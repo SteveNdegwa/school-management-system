@@ -37,7 +37,7 @@ class UsersAdministration(TransactionLogBase):
             return self.create_user(data=data, transaction=transaction)
         except Exception as e:
             lgr.exception("Create super admin exception: %s" % e)
-            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": str(e)}
             self.mark_transaction_failed(transaction, response=response)
             return JsonResponse(response)
 
@@ -60,7 +60,7 @@ class UsersAdministration(TransactionLogBase):
             return self.create_user(data=data, transaction=transaction)
         except Exception as e:
             lgr.exception("Create admin exception: %s" % e)
-            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": str(e)}
             self.mark_transaction_failed(transaction, response=response)
             return JsonResponse(response)
 
@@ -83,7 +83,7 @@ class UsersAdministration(TransactionLogBase):
             return self.create_user(data=data, transaction=transaction)
         except Exception as e:
             lgr.exception("Create clerk exception: %s" % e)
-            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": str(e)}
             self.mark_transaction_failed(transaction, response=response)
             return JsonResponse(response)
 
@@ -111,7 +111,7 @@ class UsersAdministration(TransactionLogBase):
             return self.create_user(data=data, transaction=transaction)
         except Exception as e:
             lgr.exception("Create student exception: %s" % e)
-            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": str(e)}
             self.mark_transaction_failed(transaction, response=response)
             return JsonResponse(response)
 
@@ -133,7 +133,7 @@ class UsersAdministration(TransactionLogBase):
             return self.create_user(data=data, transaction=transaction)
         except Exception as e:
             lgr.exception("Create teacher exception: %s" % e)
-            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": str(e)}
             self.mark_transaction_failed(transaction, response=response)
             return JsonResponse(response)
 
@@ -181,7 +181,7 @@ class UsersAdministration(TransactionLogBase):
             return JsonResponse(response)
         except Exception as e:
             lgr.exception("Create user exception: %s" % e)
-            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": e}
+            response = {"code": "999.999.999", "message": "Create user failed with an exception", "error": str(e)}
             self.mark_transaction_failed(transaction, response=response)
             return JsonResponse(response)
 
@@ -212,7 +212,8 @@ class UsersAdministration(TransactionLogBase):
             return JsonResponse({"code": "100.000.000", "message": "User edited successfully"})
         except Exception as e:
             lgr.exception("Edit user exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Edit user failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Edit user failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -243,7 +244,7 @@ class UsersAdministration(TransactionLogBase):
             return JsonResponse(response)
         except Exception as e:
             lgr.exception("Deactivate user exception: %s" % e)
-            response = {"code": "999.999.999", "message": "Deactivate user failed with an exception", "error": e}
+            response = {"code": "999.999.999", "message": "Deactivate user failed with an exception", "error": str(e)}
             self.mark_transaction_failed(transaction, response=response)
             return JsonResponse(response)
 
@@ -272,7 +273,8 @@ class UsersAdministration(TransactionLogBase):
             return JsonResponse({"code": "100.000.000", "message": "Successfully fetched user", "data": user_data})
         except Exception as e:
             lgr.exception("Get user exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Get user failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Get user failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -316,7 +318,8 @@ class UsersAdministration(TransactionLogBase):
             return JsonResponse({"code": "100.000.000", "message": "Successfully filtered users", "data": users_data})
         except Exception as e:
             lgr.exception("Filter users exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Filter users failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Filter users failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -348,4 +351,5 @@ class UsersAdministration(TransactionLogBase):
             return JsonResponse({"code": "100.000.000", "message": "Successfully searched users", "data": users_data})
         except Exception as e:
             lgr.exception("Search users exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Search users failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Search users failed with an exception", "error": str(e)})

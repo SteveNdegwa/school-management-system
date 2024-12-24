@@ -43,7 +43,7 @@ class BaseAdministration(object):
         except Exception as e:
             lgr.exception("Create classroom exception: %s" % e)
             return JsonResponse({
-                "code": "999.999.999", "message": "Create classroom failed with an exception", "error": e})
+                "code": "999.999.999", "message": "Create classroom failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -74,7 +74,7 @@ class BaseAdministration(object):
         except Exception as e:
             lgr.exception("Edit classroom exception: %s" % e)
             return JsonResponse({
-                "code": "999.999.999", "message": "Edit classroom failed with an exception", "error": e})
+                "code": "999.999.999", "message": "Edit classroom failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -100,7 +100,7 @@ class BaseAdministration(object):
         except Exception as e:
             lgr.exception("Delete classroom exception: %s" % e)
             return JsonResponse({
-                "code": "999.999.999", "message": "Delete classroom failed with an exception", "error": e})
+                "code": "999.999.999", "message": "Delete classroom failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -126,7 +126,7 @@ class BaseAdministration(object):
         except Exception as e:
             lgr.exception("Get classrooms exception: %s" % e)
             return JsonResponse({
-                "code": "999.999.999", "message": "Get classrooms failed with an exception", "error": e})
+                "code": "999.999.999", "message": "Get classrooms failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -142,7 +142,8 @@ class BaseAdministration(object):
             return JsonResponse({"code": "100.000.000", "message": "Schools fetched successfully", "data": data})
         except Exception as e:
             lgr.exception("Get schools exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Get schools failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Get schools failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -158,5 +159,6 @@ class BaseAdministration(object):
             return JsonResponse({"code": "100.000.000", "message": "Subjects fetched successfully", "data": data})
         except Exception as e:
             lgr.exception("Get subjects exception: %s" % e)
-            return JsonResponse({"code": "999.999.999", "message": "Get subjects failed with an exception", "error": e})
+            return JsonResponse({
+                "code": "999.999.999", "message": "Get subjects failed with an exception", "error": str(e)})
 

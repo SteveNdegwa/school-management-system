@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db.models import F
+from django.utils import timezone
 
 from base.models import GenericBaseModel, State, BaseModel, School, Classroom
 
@@ -122,6 +123,13 @@ class User(BaseModel, AbstractUser):
         except Exception as e:
             lgr.exception("User model - permissions exception: %s" % e)
             return []
+
+    def update_last_login(self):
+        """
+        Update the last time the user logged
+        """
+        self.last_login = timezone.now()
+        self.save()
 
     def save(self, *args, **kwargs):
         if not self.role:

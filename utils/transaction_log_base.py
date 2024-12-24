@@ -73,7 +73,7 @@ class TransactionLogBase(object):
         try:
             kwargs.setdefault("state", State.completed())
             notifications = kwargs.pop("notification_details", [])
-            # Thread(target=self.send_notification, args=(notifications, transaction)).start()
+            Thread(target=self.send_notification, args=(notifications, transaction)).start()
             return TransactionService().update(pk=transaction.id, **kwargs)
         except Exception as e:
             lgr.exception('TransactionLogBase complete_transaction Exception: %s', e)
@@ -91,7 +91,7 @@ class TransactionLogBase(object):
         try:
             kwargs.setdefault("state", State.failed())
             notifications = kwargs.pop('notification_details', [])
-            # Thread(target=self.send_notification, args=(notifications, transaction)).start()
+            Thread(target=self.send_notification, args=(notifications, transaction)).start()
             return TransactionService().update(pk=transaction.id, **kwargs)
         except Exception as e:
             lgr.exception('TransactionLogBase mark_transaction_failed Exception: %s', e)
