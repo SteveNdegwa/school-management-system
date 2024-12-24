@@ -353,3 +353,95 @@ class UsersAdministration(TransactionLogBase):
             lgr.exception("Search users exception: %s" % e)
             return JsonResponse({
                 "code": "999.999.999", "message": "Search users failed with an exception", "error": str(e)})
+
+    @csrf_exempt
+    @user_login_required
+    def change_password(self, request):
+        """
+        Changes a user's password
+        @params: WSGI Request
+        @return: success or failure message
+        @rtype: JsonResponse
+        """
+        try:
+            data = get_request_data(request)
+            user_id = data.get("user_id" ,"")
+            if not user_id:
+                raise Exception("User id not provided")
+            user = UserService().get(id=user_id)
+            if not user:
+                raise Exception("User not found")
+            old_password = data.get("old_password", "")
+            if not old_password:
+                raise Exception("Old password not provided")
+            if not user.check_password(old_password):
+                raise Exception("Wrong password")
+            new_password = data.get("new_password", "")
+            if not new_password:
+                raise Exception("New password not provided")
+            user.set_password(new_password)
+            user.save()
+            return JsonResponse({"code": "100.000.000", "message": "Password changed successfully"})
+        except Exception as e:
+            lgr.exception("Change password exception: %s" % e)
+            return JsonResponse({
+                "code": "999.999.999", "message": "Change password failed with an exception", "error": str(e)})
+
+    @csrf_exempt
+    @user_login_required
+    def reset_password(self, request):
+        """
+        Resets a user's password
+        @params: WSGI Request
+        @return: success or failure message
+        @rtype: JsonResponse
+        """
+        try:
+            data = get_request_data(request)
+            target_user_id = data.get("target_user_id", "")
+            if not target_user_id:
+                raise Exception("Target's user id not provided")
+            user = UserService().get(id=target_user_id)
+            if not user:
+                raise Exception("Target user not found")
+            new_password = generate_password()
+            user.set_password(new_password)
+            user.save()
+            notification_msg = "Your password was reset successfully. Your new password is: %s" % new_password
+            notification_details = create_notification_detail(
+                message_code="SC0009", message_type="2", message=notification_msg, destination=user.email)
+            self.send_notification(notification_details)
+            return JsonResponse({"code": "100.000.000", "message": "Password reset successfully"})
+        except Exception as e:
+            lgr.exception("Change password exception: %s" % e)
+            return JsonResponse({
+                "code": "999.999.999", "message": "Reset password failed with an exception", "error": str(e)})
+
+    @csrf_exempt
+    def forgot_password(self, request):
+        """
+        Resets a user's password
+        @params: WSGI Request
+        @return: success or failure message
+        @rtype: JsonResponse
+        """
+        try:
+            data = get_request_data(request)
+            username = data.get("username", "")
+            if not username:
+                raise Exception("Username not provided")
+            user = UserService().get(username=username)
+            if not user:
+                raise Exception("User not found")
+            new_password = generate_password()
+            user.set_password(new_password)
+            user.save()
+            notification_msg = "Your password was reset successfully. Your new password is: %s" % new_password
+            notification_details = create_notification_detail(
+                message_code="SC0009", message_type="2", message=notification_msg, destination=user.email)
+            self.send_notification(notification_details)
+            return JsonResponse({"code": "100.000.000", "message": "Password reset successfully"})
+        except Exception as e:
+            lgr.exception("Change password exception: %s" % e)
+            return JsonResponse({
+                "code": "999.999.999", "message": "Reset password failed with an exception", "error": str(e)})
