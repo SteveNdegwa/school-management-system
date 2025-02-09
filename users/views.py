@@ -1,7 +1,7 @@
 import logging
 
 from django.db import transaction as trx
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -9,7 +9,7 @@ from base.backend.services import SchoolService, ClassroomService, StateService
 from base.models import State
 from users.backend.decorators import user_login_required, super_admin, admin
 from users.backend.services import UserService, RoleService
-from users.models import Role
+from users.models import Role, User
 from utils.common import generate_password, create_notification_detail
 from utils.get_request_data import get_request_data
 from utils.transaction_log_base import TransactionLogBase
@@ -265,10 +265,11 @@ class UsersAdministration(TransactionLogBase):
             user = UserService().get(id=user_id)
             if not user:
                 raise Exception("User not found")
-            user_data = UserService().filter(id=user_id).annotate(role_name=F("role__name")) \
-                .annotate(state__name=F("state__name")).values(
+            user_data = UserService().filter(id=user_id).annotate(classroom_name=F("classroom__name")) \
+                .annotate(role_name=F("role__name")).annotate(state_name=F("state__name")).values(
                 "id", "username", "email", "phone_number", "other_phone_number", "first_name", "last_name",
-                "other_name", "gender", "id_no", "reg_no", "school_id", "classroom_id", "role_name", "state_name")
+                "other_name", "gender", "id_no", "reg_no", "school_id", "classroom_id", "classroom_name", "role_name",
+                "state_name").first()
             user_data["permissions"] = user.permissions
             return JsonResponse({"code": "100.000.000", "message": "Successfully fetched user", "data": user_data})
         except Exception as e:
@@ -290,6 +291,7 @@ class UsersAdministration(TransactionLogBase):
             data.pop("token", "")
             data.pop("user_id", "")
             school_id = data.pop("school_id", "")
+            search_word = data.pop("search_word", "")
             if not school_id:
                 raise Exception("School id not provided")
             school = SchoolService().get(id=school_id, state=State.active())
@@ -310,49 +312,28 @@ class UsersAdministration(TransactionLogBase):
                 state_name = data.pop("state_name", "")
                 state = StateService().get(id=state_name)
                 data["state"] = state
-            users_data = UserService().filter(**data).annotate(role_name=F("role__name")) \
-                .annotate(state__name=F("state__name")).values(
+            users_data =  UserService().filter(**data)
+            print(users_data)
+            if search_word:
+                query = Q()
+                for field in User._meta.get_fields():
+                    if field.get_internal_type() == "CharField":
+                        query |= Q(**{f"{field.name}__icontains": search_word})
+                users_data = users_data.filter(query)
+            users_data = users_data.annotate(
+                classroom_name=F("classroom__name"),
+                role_name=F("role__name"),
+                state_name=F("state__name")
+                ).values(
                 "id", "username", "email", "phone_number", "other_phone_number", "first_name", "last_name",
-                "other_name", "gender", "id_no", "reg_no", "school_id", "classroom_id", "role_name", "state_name")
+                "other_name", "gender", "id_no", "reg_no", "school_id", "classroom_id", "classroom_name", "role_name",
+                "state_name")
             users_data = list(users_data)
             return JsonResponse({"code": "100.000.000", "message": "Successfully filtered users", "data": users_data})
         except Exception as e:
             lgr.exception("Filter users exception: %s" % e)
             return JsonResponse({
                 "code": "999.999.999", "message": "Filter users failed with an exception", "error": str(e)})
-
-    @csrf_exempt
-    @user_login_required
-    def search_users(self, request):
-        """
-        Search users
-        @params: WSGI Request
-        @return: success message and user data or failure message
-        @rtype: JsonResponse
-        """
-        try:
-            data = get_request_data(request)
-            school_id = data.get("school_id", "")
-            search_word = data.get("search_word", "")
-            if not school_id:
-                raise Exception("School id not provided")
-            school = SchoolService().get(id=school_id, state=State.active())
-            if not school:
-                raise Exception("School not found")
-            users_data = UserService().filter(
-                school=school, first_name__icontains=search_word, last_name__icontains=search_word,
-                other_name__icontains=search_word, email__icontains=search_word, phone_number__icontains=search_word,
-                other_phone_number__icontains=search_word, id_no__icontains=search_word, reg_no__icontains=search_word,
-                gender__icontains=search_word).annotate(role_name=F("role__name")) \
-                .annotate(state__name=F("state__name")).values(
-                "id", "username", "email", "phone_number", "other_phone_number", "first_name", "last_name",
-                "other_name", "gender", "id_no", "reg_no", "school_id", "classroom_id", "role_name", "state_name")
-            users_data = list(users_data)
-            return JsonResponse({"code": "100.000.000", "message": "Successfully searched users", "data": users_data})
-        except Exception as e:
-            lgr.exception("Search users exception: %s" % e)
-            return JsonResponse({
-                "code": "999.999.999", "message": "Search users failed with an exception", "error": str(e)})
 
     @csrf_exempt
     @user_login_required
@@ -398,12 +379,12 @@ class UsersAdministration(TransactionLogBase):
         """
         try:
             data = get_request_data(request)
-            target_user_id = data.get("target_user_id", "")
-            if not target_user_id:
-                raise Exception("Target's user id not provided")
-            user = UserService().get(id=target_user_id)
+            user_id = data.get("user_id", "")
+            if not user_id:
+                raise Exception("User id not provided")
+            user = UserService().get(id=user_id)
             if not user:
-                raise Exception("Target user not found")
+                raise Exception("User not found")
             new_password = generate_password()
             user.set_password(new_password)
             user.save()

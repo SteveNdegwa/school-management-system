@@ -63,7 +63,7 @@ class IdentitiesAdministration(TransactionLogBase):
                     self.send_notification(notifications=notification_details)
                 else:
                     oauth = IdentityService().update(
-                        pk=oauth.id, otp_key=oauth_today.totp_key, totp_time_value=oauth_today.totp_time_value)
+                        pk=oauth.id, totp_key=oauth_today.totp_key, totp_time_value=oauth_today.totp_time_value)
                     if not oauth:
                         raise Exception("Identity not updated")
             oauth = oauth.extend()
@@ -121,7 +121,7 @@ class IdentitiesAdministration(TransactionLogBase):
     @csrf_exempt
     def logout(self, request):
         """
-        Logs out out a user
+        Logs out a user
         @params: WSGI Request
         @return: success or failure message
         @rtype: JsonResponse

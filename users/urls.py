@@ -10,7 +10,6 @@ urlpatterns = [
     re_path(r'edit-user/$', UsersAdministration().edit_user),
     re_path(r'get-user/$', UsersAdministration().get_user),
     re_path(r'filter-users/$', UsersAdministration().filter_users),
-    re_path(r'search-users/$', UsersAdministration().search_users),
     re_path(r'change-password/$', UsersAdministration().change_password),
     re_path(r'reset-password/$', UsersAdministration().reset_password),
     re_path(r'forgot-password/$', UsersAdministration().forgot_password),
